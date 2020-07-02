@@ -1,0 +1,17 @@
+<resources>
+    <string name="app_name">Currency Exchange</string>
+    <string name="eur">€</string>
+    <string name="usd">$</string>
+    <string name="jpy">¥</string>
+    <string name="to">to</string>
+    <string name="convert">CONVERT</string>
+    <string name="EUR">EUR</string>
+    <string name="USD">USD</string>
+    <string name="JPY">JPY</string>
+    <string name="radio_button_error">Please choose two different currencies</string>
+    <string name="insufficient_funds">No sufficient funds to make this conversion</string>
+    <string name="enter_the_amount">Please enter the amount of money to convert</string>
+    <string name="balance">BALANCE</string>
+    <string name="commissions">COMMISSIONS</string>
+    <string name="amount">amount</string>
+</resources>
