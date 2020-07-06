@@ -113,4 +113,8 @@ class MainActivity : AppCompatActivity() {
         binding.radioGroupTo.clearCheck()
         binding.amountFrom.text.clear()
     }
+
+    fun showToast() {
+        Toast.makeText(applicationContext,"Error",Toast.LENGTH_SHORT).show()
+    }
 }

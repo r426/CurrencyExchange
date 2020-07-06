@@ -1,10 +1,10 @@
 package com.ryeslim.currencyexchangeretrofitcoroutines
 
 
+import android.widget.Toast
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.android.volley.Response
 import com.ryeslim.currencyexchangeretrofitcoroutines.retrofit.ServiceFactory
 import com.ryeslim.currencyexchangeretrofitcoroutines.dataclass.Currency
 import kotlinx.coroutines.*
@@ -104,12 +104,12 @@ class MainViewModel : ViewModel() {
                 calculateValues()
                 makeInfoMessage()
             } else {
-                Response.ErrorListener { error -> println(error) }
+                _infoMessage.postValue("Error")
             }
 
         } catch (e: Exception) {
             e.stackTrace
-            Response.ErrorListener { error -> println(error) }
+            _infoMessage.postValue("Error")
         }
     }
 
