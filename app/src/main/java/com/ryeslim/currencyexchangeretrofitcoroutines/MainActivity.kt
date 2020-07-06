@@ -48,9 +48,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun getAmountToConvert() {
-        if (binding.amountFrom.text.toString().trim().isNotEmpty())
+        if (binding.amountToConvert.text.toString().trim().isNotEmpty())
             viewModel.amountToConvert =
-                binding.amountFrom.text.toString().toBigDecimal()
+                binding.amountToConvert.text.toString().toBigDecimal()
                     .setScale(2, RoundingMode.HALF_EVEN)
         else viewModel.amountToConvert = (-1).toBigDecimal()
     }
@@ -101,7 +101,6 @@ class MainActivity : AppCompatActivity() {
         } else {
             //if no errors
             viewModel.makeUrl()
-            //viewModel.getDataAndCalculate(this)
             viewModel.launchDataLoad()
             clearButtons()
         }
@@ -111,10 +110,6 @@ class MainActivity : AppCompatActivity() {
     private fun clearButtons() {
         binding.radioGroupFrom.clearCheck()
         binding.radioGroupTo.clearCheck()
-        binding.amountFrom.text.clear()
-    }
-
-    fun showToast() {
-        Toast.makeText(applicationContext,"Error",Toast.LENGTH_SHORT).show()
+        binding.amountToConvert.text.clear()
     }
 }

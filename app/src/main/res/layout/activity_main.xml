@@ -9,7 +9,7 @@
             tools:context=".MainActivity">
 
         <View
-                android:id="@+id/upper_half"
+                android:id="@+id/upperHalf"
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 app:layout_constraintEnd_toEndOf="parent"
@@ -25,77 +25,77 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintBottom_toBottomOf="@id/upper_half"
+                app:layout_constraintBottom_toBottomOf="@id/upperHalf"
                 android:layout_margin="@dimen/margin"
                 android:stretchColumns="1">
             <TableRow>
                 <TextView
-                        android:id="@+id/heading_balance"
+                        android:id="@+id/headingBalance"
                         style="@style/cell_heading"
                         android:text="@string/balance"/>
                 <TextView
-                        android:id="@+id/heading_commissions"
+                        android:id="@+id/headingCommissions"
                         style="@style/cell_heading"
                         android:text="@string/commissions"/>
             </TableRow>
             <TableRow>
                 <TextView
-                        android:id="@+id/eur_balance_value"
+                        android:id="@+id/eurBalanceValue"
                         style="@style/cell_value"/>
                 <TextView
-                        android:id="@+id/EUR"
+                        android:id="@+id/eur"
                         style="@style/cell_currency"
                         android:text="@string/EUR"/>
                 <TextView
-                        android:id="@+id/eur_commissions_value"
+                        android:id="@+id/eurCommissionsValue"
                         style="@style/cell_value"/>
                 <TextView
-                        android:id="@+id/EUR_commissions"
+                        android:id="@+id/eurCommissions"
                         style="@style/cell_currency"
                         android:text="@string/EUR"/>
             </TableRow>
             <TableRow>
                 <TextView
-                        android:id="@+id/usd_balance_value"
+                        android:id="@+id/usdBalanceValue"
                         style="@style/cell_value"/>
                 <TextView
-                        android:id="@+id/USD"
+                        android:id="@+id/usd"
                         style="@style/cell_currency"
                         android:text="@string/USD"/>
                 <TextView
-                        android:id="@+id/usd_commissions_value"
+                        android:id="@+id/usdCommissionsValue"
                         style="@style/cell_value"/>
                 <TextView
-                        android:id="@+id/USD_commissions"
+                        android:id="@+id/usdCommissions"
                         style="@style/cell_currency"
                         android:text="@string/USD"/>
             </TableRow>
             <TableRow>
                 <TextView
-                        android:id="@+id/jpy_balance_value"
+                        android:id="@+id/jpyBalanceValue"
                         style="@style/cell_value"/>
                 <TextView
-                        android:id="@+id/JPY"
+                        android:id="@+id/jpy"
                         style="@style/cell_currency"
                         android:text="@string/JPY"/>
                 <TextView
-                        android:id="@+id/jpy_commissions_value"
+                        android:id="@+id/jpyCommissionsValue"
                         style="@style/cell_value"/>
                 <TextView
-                        android:id="@+id/JPY_commissions"
+                        android:id="@+id/jpyCommissions"
                         style="@style/cell_currency"
                         android:text="@string/JPY"/>
             </TableRow>
         </TableLayout>
 
         <EditText
-                android:id="@+id/amount_from"
+                android:id="@+id/amountToConvert"
                 android:inputType="numberDecimal"
                 android:ems="10"
-                app:layout_constraintTop_toTopOf="@id/radio_group_from"
-                app:layout_constraintBottom_toBottomOf="@id/radio_group_from"
+                app:layout_constraintTop_toTopOf="@id/radioGroupFrom"
+                app:layout_constraintBottom_toBottomOf="@id/radioGroupFrom"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toStartOf="@id/radio_group_from"
+                app:layout_constraintEnd_toStartOf="@id/radioGroupFrom"
                 android:hint="@string/amount"
                 android:background="@drawable/border"
                 android:layout_margin="8dp"
@@ -106,28 +106,28 @@
                 android:textSize="@dimen/text_size_smallest"/>
 
         <RadioGroup
-                android:id="@+id/radio_group_from"
+                android:id="@+id/radioGroupFrom"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                app:layout_constraintTop_toBottomOf="@id/upper_half"
-                app:layout_constraintStart_toEndOf="@id/amount_from"
+                app:layout_constraintTop_toBottomOf="@id/upperHalf"
+                app:layout_constraintStart_toEndOf="@id/amountToConvert"
                 app:layout_constraintEnd_toStartOf="@id/to">
 
             <RadioButton
-                    android:id="@+id/from_eur"
+                    android:id="@+id/fromEur"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/eur"
                     android:layout_marginBottom="8dp"/>
 
             <RadioButton
-                    android:id="@+id/from_usd"
+                    android:id="@+id/fromUsd"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/usd"/>
 
             <RadioButton
-                    android:id="@+id/from_jpy"
+                    android:id="@+id/fromJpy"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/jpy"
@@ -141,35 +141,35 @@
                 android:text="@string/to"
                 android:gravity="center"
                 android:textSize="@dimen/text_size_smallest"
-                app:layout_constraintBottom_toBottomOf="@id/radio_group_from"
-                app:layout_constraintTop_toTopOf="@id/radio_group_from"
-                app:layout_constraintStart_toEndOf="@id/radio_group_from"
-                app:layout_constraintEnd_toStartOf="@id/radio_group_to"
+                app:layout_constraintBottom_toBottomOf="@id/radioGroupFrom"
+                app:layout_constraintTop_toTopOf="@id/radioGroupFrom"
+                app:layout_constraintStart_toEndOf="@id/radioGroupFrom"
+                app:layout_constraintEnd_toStartOf="@id/radioGroupFrom"
                 android:layout_margin="8dp"/>
 
         <RadioGroup
-                android:id="@+id/radio_group_to"
+                android:id="@+id/radioGroupTo"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                app:layout_constraintTop_toBottomOf="@id/upper_half"
+                app:layout_constraintTop_toBottomOf="@id/upperHalf"
                 app:layout_constraintStart_toEndOf="@id/to"
                 app:layout_constraintEnd_toStartOf="@id/convert">
 
             <RadioButton
-                    android:id="@+id/to_eur"
+                    android:id="@+id/toEur"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/eur"
                     android:layout_marginBottom="8dp"/>
 
             <RadioButton
-                    android:id="@+id/to_usd"
+                    android:id="@+id/toUsd"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/usd"/>
 
             <RadioButton
-                    android:id="@+id/to_jpy"
+                    android:id="@+id/toJpy"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/jpy"
@@ -182,20 +182,20 @@
                 android:layout_height="48dp"
                 android:background="@color/colorAccent"
                 android:text="@string/convert"
-                app:layout_constraintTop_toBottomOf="@id/radio_group_from"
-                app:layout_constraintTop_toTopOf="@id/radio_group_from"
-                app:layout_constraintBottom_toBottomOf="@id/radio_group_from"
+                app:layout_constraintTop_toBottomOf="@id/radioGroupFrom"
+                app:layout_constraintTop_toTopOf="@id/radioGroupFrom"
+                app:layout_constraintBottom_toBottomOf="@id/radioGroupFrom"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toEndOf="@id/radio_group_to"
+                app:layout_constraintStart_toEndOf="@id/radioGroupTo"
                 android:layout_margin="8dp"/>
         <TextView
-                android:id="@+id/info_message"
+                android:id="@+id/infoMessage"
                 android:text=""
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/radio_group_from"
+                app:layout_constraintTop_toBottomOf="@+id/radioGroupFrom"
                 app:layout_constraintBottom_toBottomOf="parent"
                 android:gravity="center"
                 android:textSize="@dimen/text_size_small"/>
