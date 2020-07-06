@@ -15,7 +15,7 @@ class MainViewModel : ViewModel() {
 
     private val coroutineScope = CoroutineScope(Dispatchers.Main + viewModelJob)
 
-    var response: retrofit2.Response<Currency>? = null
+    private var response: retrofit2.Response<Currency>? = null
 
     private val _eur = MutableLiveData<Currency>()
     val eur: LiveData<Currency>
@@ -89,7 +89,7 @@ class MainViewModel : ViewModel() {
         }
     }
 
-    suspend fun fetchData() = withContext(Dispatchers.Default) {
+    suspend private fun fetchData() = withContext(Dispatchers.Default) {
         try {
             withContext(Dispatchers.IO) {
                 response = ServiceFactory.createRetrofitService(
