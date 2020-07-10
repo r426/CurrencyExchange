@@ -1,4 +1,4 @@
-package com.ryeslim.currencyexchangeretrofitcoroutines
+package com.ryeslim.currencyexchange
 
 import androidx.test.InstrumentationRegistry
 import androidx.test.runner.AndroidJUnit4

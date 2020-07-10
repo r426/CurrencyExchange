@@ -1,4 +1,4 @@
-package com.ryeslim.currencyexchangeretrofitcoroutines.dataclass
+package com.ryeslim.currencyexchange.dataclass
 
 import com.google.gson.annotations.Expose
 import com.google.gson.annotations.SerializedName

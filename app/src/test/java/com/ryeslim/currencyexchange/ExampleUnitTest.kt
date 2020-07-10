@@ -1,4 +1,4 @@
-package com.ryeslim.currencyexchangeretrofitcoroutines
+package com.ryeslim.currencyexchange
 
 import org.junit.Test
 
