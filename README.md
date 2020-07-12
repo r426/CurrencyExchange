@@ -1,4 +1,4 @@
-Currency Exchange
+# Currency Exchange
 
 The app performs currency conversions to/from EUR, USD and JPY.
 
