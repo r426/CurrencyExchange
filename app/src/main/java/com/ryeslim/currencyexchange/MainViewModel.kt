@@ -6,6 +6,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.ryeslim.currencyexchange.retrofit.ServiceFactory
 import com.ryeslim.currencyexchange.dataclass.Currency
+import com.ryeslim.currencyexchange.dataclass.InfoMessage
 import kotlinx.coroutines.*
 import java.math.BigDecimal
 
@@ -27,9 +28,12 @@ class MainViewModel : ViewModel() {
     val jpy: LiveData<Currency>
         get() = _jpy
 
-    private val _infoMessage = MutableLiveData<String>()
-    val infoMessage: LiveData<String>
+    private val _infoMessage = MutableLiveData<InfoMessage>()
+    val infoMessage: LiveData<InfoMessage>
         get() = _infoMessage
+
+    private val _error = MutableLiveData<Unit>()
+    val error: LiveData<Unit> = _error
 
     private val _eurCommission = MutableLiveData<BigDecimal>()
     val eurCommission: LiveData<BigDecimal>
@@ -61,8 +65,6 @@ class MainViewModel : ViewModel() {
             "JPY"
         )
         _jpyCommission.value = 0.toBigDecimal()
-
-        _infoMessage.value = ""
     }
 
     val currencies = arrayOf(_eur, _usd, _jpy)
@@ -101,12 +103,11 @@ class MainViewModel : ViewModel() {
                 calculateValues()
                 makeInfoMessage()
             } else {
-                _infoMessage.postValue("Error")
+                _error.postValue(Unit)
             }
 
         } catch (e: Exception) {
-            e.stackTrace
-            _infoMessage.postValue("Error")
+            _error.postValue(Unit)
         }
     }
 
@@ -145,14 +146,13 @@ class MainViewModel : ViewModel() {
 
     private fun makeInfoMessage() {
         _infoMessage.postValue(
-            String.format(
-                "You converted %.2f %s to %.2f %s. Commission paid: %.2f %s",
+            InfoMessage(
                 amountToConvert,
-                currencies[indexFrom].value?.currencyCode,
+                currencies[indexFrom].value?.currencyCode!!,
                 response!!.body()!!.balanceValue,
-                currencies[indexTo].value?.currencyCode,
+                currencies[indexTo].value?.currencyCode!!,
                 thisCommission,
-                currencies[indexFrom].value?.currencyCode
+                currencies[indexFrom].value?.currencyCode!!
             )
         )
     }
