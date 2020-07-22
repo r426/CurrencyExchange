@@ -32,6 +32,9 @@ class MainViewModel : ViewModel() {
     val infoMessage: LiveData<InfoMessage>
         get() = _infoMessage
 
+    private val _error = MutableLiveData<Unit>()
+    val error: LiveData<Unit> = _error
+
     private val _eurCommission = MutableLiveData<BigDecimal>()
     val eurCommission: LiveData<BigDecimal>
         get() = _eurCommission
@@ -102,12 +105,11 @@ class MainViewModel : ViewModel() {
                 calculateValues()
                 makeInfoMessage()
             } else {
-//                _infoMessage.postValue("Error")
+                _error.postValue(Unit)
             }
 
         } catch (e: Exception) {
-            e.stackTrace
-//            _infoMessage.postValue("Error")
+            _error.postValue(Unit)
         }
     }
 
@@ -148,8 +150,8 @@ class MainViewModel : ViewModel() {
         _infoMessage.postValue(
 //            String.format(
 //                "You converted %.2f %s to %.2f %s. Commission paid: %.2f %s",
-           InfoMessage(
-            amountToConvert,
+            InfoMessage(
+                amountToConvert,
                 currencies[indexFrom].value?.currencyCode!!,
                 response!!.body()!!.balanceValue,
                 currencies[indexTo].value?.currencyCode!!,
