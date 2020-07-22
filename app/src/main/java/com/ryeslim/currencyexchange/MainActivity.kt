@@ -109,7 +109,7 @@ class MainActivity : AppCompatActivity() {
             || viewModel.indexFrom == viewModel.indexTo
         ) {
             errorMessage = getString(R.string.radio_button_error)
-        } else if (viewModel.amountToConvert + viewModel.thisCommission > viewModel.currencies[viewModel.indexFrom].balanceValue) {
+        } else if (viewModel.amountToConvert + viewModel.thisCommission > viewModel.currencies[viewModel.indexFrom].value?.balanceValue) {
             errorMessage = getString(R.string.insufficient_funds)
         }
 
