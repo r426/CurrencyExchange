@@ -40,27 +40,34 @@ class MainViewModel : ViewModel() {
     private val _jpyCommission = MutableLiveData<BigDecimal>()
     val jpyCommission: LiveData<BigDecimal> = _jpyCommission
 
+    private val eurValue = Currency(
+        1000.toBigDecimal(),
+        "EUR"
+    )
+
+    private val usdValue = Currency(
+        0.toBigDecimal(),
+        "USD"
+    )
+
+    private val jpyValue = Currency(
+        0.toBigDecimal(),
+        "JPY"
+    )
+
     init {
-        _eur.value = Currency(
-            1000.toBigDecimal(),
-            "EUR"
-        )
+        _eur.postValue(eurValue)
         _eurCommission.value = 0.toBigDecimal()
 
-        _usd.value = Currency(
-            0.toBigDecimal(),
-            "USD"
-        )
+        _usd.postValue(usdValue)
         _usdCommission.value = 0.toBigDecimal()
 
-        _jpy.value = Currency(
-            0.toBigDecimal(),
-            "JPY"
-        )
+        _jpy.postValue(jpyValue)
         _jpyCommission.value = 0.toBigDecimal()
     }
 
-    val currencies = arrayOf(_eur, _usd, _jpy)
+    val currencies = arrayOf(eurValue, usdValue, jpyValue)
+    val currenciesLiveData = arrayOf(_eur, _usd, _jpy)
     private val commissions = arrayOf(_eurCommission, _usdCommission, _jpyCommission)
 
     var amountToConvert = (-1).toBigDecimal()
@@ -106,7 +113,7 @@ class MainViewModel : ViewModel() {
 
     fun makeUrl() {
         url =
-            "$amountToConvert-${(currencies[indexFrom].value)?.currencyCode}/${(currencies[indexTo].value)?.currencyCode}/latest"
+            "$amountToConvert-${(currencies[indexFrom]).currencyCode}/${(currencies[indexTo]).currencyCode}/latest"
     }
 
     private fun calculateValues() {
@@ -116,19 +123,19 @@ class MainViewModel : ViewModel() {
         val tempCommission: BigDecimal?
 
         tempCurrencyFrom.balanceValue =
-            currencies[indexFrom].value!!.balanceValue.minus(amountToConvert).minus(thisCommission)
-        tempCurrencyFrom.currencyCode = currencies[indexFrom].value!!.currencyCode
+            currencies[indexFrom].balanceValue.minus(amountToConvert).minus(thisCommission)
+        tempCurrencyFrom.currencyCode = currencies[indexFrom].currencyCode
 
         tempCurrencyTo.balanceValue =
-            currencies[indexTo].value!!.balanceValue.plus(response!!.body()!!.balanceValue)
-        tempCurrencyTo.currencyCode = currencies[indexTo].value!!.currencyCode
+            currencies[indexTo].balanceValue.plus(response!!.body()!!.balanceValue)
+        tempCurrencyTo.currencyCode = currencies[indexTo].currencyCode
 
         tempCommission = commissions[indexFrom].value!!.plus(thisCommission)
 
         // force postValue to notify Observers
         // postValue posts a task to a main thread to set the given values
-        currencies[indexFrom].postValue(tempCurrencyFrom)
-        currencies[indexTo].postValue(tempCurrencyTo)
+        currenciesLiveData[indexFrom].postValue(tempCurrencyFrom)
+        currenciesLiveData[indexTo].postValue(tempCurrencyTo)
         commissions[indexFrom].postValue(tempCommission)
     }
 
@@ -141,11 +148,11 @@ class MainViewModel : ViewModel() {
         _infoMessage.postValue(
             InfoMessage(
                 amountToConvert,
-                currencies[indexFrom].value?.currencyCode!!,
+                currencies[indexFrom].currencyCode,
                 response!!.body()!!.balanceValue,
-                currencies[indexTo].value?.currencyCode!!,
+                currencies[indexTo].currencyCode,
                 thisCommission,
-                currencies[indexFrom].value?.currencyCode!!
+                currencies[indexFrom].currencyCode
             )
         )
     }
