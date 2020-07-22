@@ -17,35 +17,28 @@ class MainViewModel : ViewModel() {
     private var response: retrofit2.Response<Currency>? = null
 
     private val _eur = MutableLiveData<Currency>()
-    val eur: LiveData<Currency>
-        get() = _eur
+    val eur: LiveData<Currency> = _eur
 
     private val _usd = MutableLiveData<Currency>()
-    val usd: LiveData<Currency>
-        get() = _usd
+    val usd: LiveData<Currency> = _usd
 
     private val _jpy = MutableLiveData<Currency>()
-    val jpy: LiveData<Currency>
-        get() = _jpy
+    val jpy: LiveData<Currency> = _jpy
 
     private val _infoMessage = MutableLiveData<InfoMessage>()
-    val infoMessage: LiveData<InfoMessage>
-        get() = _infoMessage
+    val infoMessage: LiveData<InfoMessage> = _infoMessage
 
     private val _error = MutableLiveData<Unit>()
     val error: LiveData<Unit> = _error
 
     private val _eurCommission = MutableLiveData<BigDecimal>()
-    val eurCommission: LiveData<BigDecimal>
-        get() = _eurCommission
+    val eurCommission: LiveData<BigDecimal> = _eurCommission
 
     private val _usdCommission = MutableLiveData<BigDecimal>()
-    val usdCommission: LiveData<BigDecimal>
-        get() = _usdCommission
+    val usdCommission: LiveData<BigDecimal> = _usdCommission
 
     private val _jpyCommission = MutableLiveData<BigDecimal>()
-    val jpyCommission: LiveData<BigDecimal>
-        get() = _jpyCommission
+    val jpyCommission: LiveData<BigDecimal> = _jpyCommission
 
     init {
         _eur.value = Currency(
