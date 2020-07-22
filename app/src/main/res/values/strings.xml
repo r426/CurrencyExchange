@@ -14,4 +14,6 @@
     <string name="balance">BALANCE</string>
     <string name="commissions">COMMISSIONS</string>
     <string name="amount">amount</string>
+    <string name="info_message">You converted %.2f %s to %.2f %s. Commission paid: %.2f %s</string>
+    <string name="error_message">Error</string>
 </resources>
