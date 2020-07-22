@@ -55,20 +55,27 @@ class MainViewModel : ViewModel() {
         "JPY"
     )
 
+    private val eurCommissionValue = 0.toBigDecimal()
+    private val usdCommissionValue = 0.toBigDecimal()
+    private val jpyCommissionValue = 0.toBigDecimal()
+
     init {
         _eur.postValue(eurValue)
-        _eurCommission.value = 0.toBigDecimal()
+        _eurCommission.postValue(eurCommissionValue)
+
 
         _usd.postValue(usdValue)
-        _usdCommission.value = 0.toBigDecimal()
+        _usdCommission.postValue(usdCommissionValue)
+
 
         _jpy.postValue(jpyValue)
-        _jpyCommission.value = 0.toBigDecimal()
+        _jpyCommission.postValue(jpyCommissionValue)
     }
 
     val currencies = arrayOf(eurValue, usdValue, jpyValue)
     val currenciesLiveData = arrayOf(_eur, _usd, _jpy)
-    private val commissions = arrayOf(_eurCommission, _usdCommission, _jpyCommission)
+    val commissions = arrayOf(eurCommissionValue, usdCommissionValue, jpyCommissionValue)
+    val commissionsLiveData = arrayOf(_eurCommission, _usdCommission, _jpyCommission)
 
     var amountToConvert = (-1).toBigDecimal()
     var indexFrom = -1
@@ -130,13 +137,13 @@ class MainViewModel : ViewModel() {
             currencies[indexTo].balanceValue.plus(response!!.body()!!.balanceValue)
         tempCurrencyTo.currencyCode = currencies[indexTo].currencyCode
 
-        tempCommission = commissions[indexFrom].value!!.plus(thisCommission)
+        tempCommission = commissions[indexFrom].plus(thisCommission)
 
         // force postValue to notify Observers
         // postValue posts a task to a main thread to set the given values
         currenciesLiveData[indexFrom].postValue(tempCurrencyFrom)
         currenciesLiveData[indexTo].postValue(tempCurrencyTo)
-        commissions[indexFrom].postValue(tempCommission)
+        commissionsLiveData[indexFrom].postValue(tempCommission)
     }
 
     fun calculateCommission() {
