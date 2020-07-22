@@ -65,8 +65,6 @@ class MainViewModel : ViewModel() {
             "JPY"
         )
         _jpyCommission.value = 0.toBigDecimal()
-
-//        _infoMessage.value = ""
     }
 
     val currencies = arrayOf(_eur, _usd, _jpy)
@@ -148,8 +146,6 @@ class MainViewModel : ViewModel() {
 
     private fun makeInfoMessage() {
         _infoMessage.postValue(
-//            String.format(
-//                "You converted %.2f %s to %.2f %s. Commission paid: %.2f %s",
             InfoMessage(
                 amountToConvert,
                 currencies[indexFrom].value?.currencyCode!!,
