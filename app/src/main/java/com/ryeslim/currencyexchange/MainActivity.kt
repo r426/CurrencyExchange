@@ -7,6 +7,7 @@ import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import com.ryeslim.currencyexchange.databinding.ActivityMainBinding
+import com.ryeslim.currencyexchange.dataclass.InfoMessage
 import java.math.RoundingMode
 
 class MainActivity : AppCompatActivity() {
@@ -42,9 +43,22 @@ class MainActivity : AppCompatActivity() {
             binding.jpyCommissionsValue.text = String.format("%.2f", newJpyCommission)
         })
         viewModel.infoMessage.observe(this, Observer { newInfoMessage ->
-            binding.infoMessage.text = newInfoMessage
+            showInfoMessage(newInfoMessage)
         })
         binding.convert.setOnClickListener { manageConversion() }
+    }
+
+    private fun showInfoMessage(newInfoMessage: InfoMessage) {
+        binding.infoMessage.text =
+            getString(
+                R.string.info_message,
+                newInfoMessage.amountToConvert,
+                newInfoMessage.currencyCodeFrom,
+                newInfoMessage.balance,
+                newInfoMessage.balanceCurrencyCode,
+                newInfoMessage.commission,
+                newInfoMessage.commissionCurrencyCode
+            )
     }
 
     private fun getAmountToConvert() {
