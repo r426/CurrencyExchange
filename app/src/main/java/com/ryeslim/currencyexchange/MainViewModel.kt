@@ -125,25 +125,21 @@ class MainViewModel : ViewModel() {
 
     private fun calculateValues() {
 
-        val tempCurrencyFrom = Currency(0.toBigDecimal(), "")
-        val tempCurrencyTo = Currency(0.toBigDecimal(), "")
-        val tempCommission: BigDecimal?
-
-        tempCurrencyFrom.balanceValue =
+        currencies[indexFrom].balanceValue =
             currencies[indexFrom].balanceValue.minus(amountToConvert).minus(thisCommission)
-        tempCurrencyFrom.currencyCode = currencies[indexFrom].currencyCode
+        currencies[indexFrom].currencyCode = currencies[indexFrom].currencyCode
 
-        tempCurrencyTo.balanceValue =
+        currencies[indexTo].balanceValue =
             currencies[indexTo].balanceValue.plus(response!!.body()!!.balanceValue)
-        tempCurrencyTo.currencyCode = currencies[indexTo].currencyCode
+        currencies[indexTo].currencyCode = currencies[indexTo].currencyCode
 
-        tempCommission = commissions[indexFrom].plus(thisCommission)
+        commissions[indexFrom] = commissions[indexFrom].plus(thisCommission)
 
         // force postValue to notify Observers
         // postValue posts a task to a main thread to set the given values
-        currenciesLiveData[indexFrom].postValue(tempCurrencyFrom)
-        currenciesLiveData[indexTo].postValue(tempCurrencyTo)
-        commissionsLiveData[indexFrom].postValue(tempCommission)
+        currenciesLiveData[indexFrom].postValue(currencies[indexFrom])
+        currenciesLiveData[indexTo].postValue(currencies[indexTo])
+        commissionsLiveData[indexFrom].postValue(commissions[indexFrom])
     }
 
     fun calculateCommission() {
