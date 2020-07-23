@@ -17,58 +17,65 @@ class MainViewModel : ViewModel() {
     private var response: retrofit2.Response<Currency>? = null
 
     private val _eur = MutableLiveData<Currency>()
-    val eur: LiveData<Currency>
-        get() = _eur
+    val eur: LiveData<Currency> = _eur
 
     private val _usd = MutableLiveData<Currency>()
-    val usd: LiveData<Currency>
-        get() = _usd
+    val usd: LiveData<Currency> = _usd
 
     private val _jpy = MutableLiveData<Currency>()
-    val jpy: LiveData<Currency>
-        get() = _jpy
+    val jpy: LiveData<Currency> = _jpy
 
     private val _infoMessage = MutableLiveData<InfoMessage>()
-    val infoMessage: LiveData<InfoMessage>
-        get() = _infoMessage
+    val infoMessage: LiveData<InfoMessage> = _infoMessage
 
     private val _error = MutableLiveData<Unit>()
     val error: LiveData<Unit> = _error
 
     private val _eurCommission = MutableLiveData<BigDecimal>()
-    val eurCommission: LiveData<BigDecimal>
-        get() = _eurCommission
+    val eurCommission: LiveData<BigDecimal> = _eurCommission
 
     private val _usdCommission = MutableLiveData<BigDecimal>()
-    val usdCommission: LiveData<BigDecimal>
-        get() = _usdCommission
+    val usdCommission: LiveData<BigDecimal> = _usdCommission
 
     private val _jpyCommission = MutableLiveData<BigDecimal>()
-    val jpyCommission: LiveData<BigDecimal>
-        get() = _jpyCommission
+    val jpyCommission: LiveData<BigDecimal> = _jpyCommission
+
+    private val eurValue = Currency(
+        1000.toBigDecimal(),
+        "EUR"
+    )
+
+    private val usdValue = Currency(
+        0.toBigDecimal(),
+        "USD"
+    )
+
+    private val jpyValue = Currency(
+        0.toBigDecimal(),
+        "JPY"
+    )
+
+    private val eurCommissionValue = 0.toBigDecimal()
+    private val usdCommissionValue = 0.toBigDecimal()
+    private val jpyCommissionValue = 0.toBigDecimal()
 
     init {
-        _eur.value = Currency(
-            1000.toBigDecimal(),
-            "EUR"
-        )
-        _eurCommission.value = 0.toBigDecimal()
+        _eur.postValue(eurValue)
+        _eurCommission.postValue(eurCommissionValue)
 
-        _usd.value = Currency(
-            0.toBigDecimal(),
-            "USD"
-        )
-        _usdCommission.value = 0.toBigDecimal()
 
-        _jpy.value = Currency(
-            0.toBigDecimal(),
-            "JPY"
-        )
-        _jpyCommission.value = 0.toBigDecimal()
+        _usd.postValue(usdValue)
+        _usdCommission.postValue(usdCommissionValue)
+
+
+        _jpy.postValue(jpyValue)
+        _jpyCommission.postValue(jpyCommissionValue)
     }
 
-    val currencies = arrayOf(_eur, _usd, _jpy)
-    private val commissions = arrayOf(_eurCommission, _usdCommission, _jpyCommission)
+    val currencies = arrayOf(eurValue, usdValue, jpyValue)
+    val currenciesLiveData = arrayOf(_eur, _usd, _jpy)
+    val commissions = arrayOf(eurCommissionValue, usdCommissionValue, jpyCommissionValue)
+    val commissionsLiveData = arrayOf(_eurCommission, _usdCommission, _jpyCommission)
 
     var amountToConvert = (-1).toBigDecimal()
     var indexFrom = -1
@@ -113,7 +120,7 @@ class MainViewModel : ViewModel() {
 
     fun makeUrl() {
         url =
-            "$amountToConvert-${(currencies[indexFrom].value)?.currencyCode}/${(currencies[indexTo].value)?.currencyCode}/latest"
+            "$amountToConvert-${(currencies[indexFrom]).currencyCode}/${(currencies[indexTo]).currencyCode}/latest"
     }
 
     private fun calculateValues() {
@@ -123,20 +130,20 @@ class MainViewModel : ViewModel() {
         val tempCommission: BigDecimal?
 
         tempCurrencyFrom.balanceValue =
-            currencies[indexFrom].value!!.balanceValue.minus(amountToConvert).minus(thisCommission)
-        tempCurrencyFrom.currencyCode = currencies[indexFrom].value!!.currencyCode
+            currencies[indexFrom].balanceValue.minus(amountToConvert).minus(thisCommission)
+        tempCurrencyFrom.currencyCode = currencies[indexFrom].currencyCode
 
         tempCurrencyTo.balanceValue =
-            currencies[indexTo].value!!.balanceValue.plus(response!!.body()!!.balanceValue)
-        tempCurrencyTo.currencyCode = currencies[indexTo].value!!.currencyCode
+            currencies[indexTo].balanceValue.plus(response!!.body()!!.balanceValue)
+        tempCurrencyTo.currencyCode = currencies[indexTo].currencyCode
 
-        tempCommission = commissions[indexFrom].value!!.plus(thisCommission)
+        tempCommission = commissions[indexFrom].plus(thisCommission)
 
         // force postValue to notify Observers
         // postValue posts a task to a main thread to set the given values
-        currencies[indexFrom].postValue(tempCurrencyFrom)
-        currencies[indexTo].postValue(tempCurrencyTo)
-        commissions[indexFrom].postValue(tempCommission)
+        currenciesLiveData[indexFrom].postValue(tempCurrencyFrom)
+        currenciesLiveData[indexTo].postValue(tempCurrencyTo)
+        commissionsLiveData[indexFrom].postValue(tempCommission)
     }
 
     fun calculateCommission() {
@@ -148,11 +155,11 @@ class MainViewModel : ViewModel() {
         _infoMessage.postValue(
             InfoMessage(
                 amountToConvert,
-                currencies[indexFrom].value?.currencyCode!!,
+                currencies[indexFrom].currencyCode,
                 response!!.body()!!.balanceValue,
-                currencies[indexTo].value?.currencyCode!!,
+                currencies[indexTo].currencyCode,
                 thisCommission,
-                currencies[indexFrom].value?.currencyCode!!
+                currencies[indexFrom].currencyCode
             )
         )
     }
