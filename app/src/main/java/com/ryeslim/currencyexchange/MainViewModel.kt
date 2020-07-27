@@ -96,18 +96,17 @@ class MainViewModel : ViewModel() {
     }
 
     private suspend fun fetchData() = withContext(Dispatchers.Default) {
-        var response: retrofit2.Response<Currency>?
         try {
             withContext(Dispatchers.IO) {
-                response = ServiceFactory.createRetrofitService(
+                val response = ServiceFactory.createRetrofitService(
                     CurrencyApi::class.java,
                     "http://api.evp.lt/currency/commercial/exchange/"
                 )
                     .getCurrencyAsync(url).await()
 
-                if (response!!.body() != null) {
-                    calculateValues(response!!.body())
-                    makeInfoMessage(response!!.body())
+                if (response.body() != null) {
+                    calculateValues(response.body())
+                    makeInfoMessage(response.body())
                 } else {
                     _error.postValue(Unit)
                 }
