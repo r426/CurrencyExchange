@@ -41,17 +41,17 @@ class MainViewModel : ViewModel() {
     val jpyCommission: LiveData<BigDecimal> = _jpyCommission
 
     private val eurValue = Currency(
-        eurBalanceInitial.toBigDecimal(),
+        EUR_BALANCE_INITIAL.toBigDecimal(),
         "EUR"
     )
 
     private val usdValue = Currency(
-        usdBalanceInitial.toBigDecimal(),
+        USD_BALANCE_INITIAL.toBigDecimal(),
         "USD"
     )
 
     private val jpyValue = Currency(
-        jpyBalanceInitial.toBigDecimal(),
+        JPY_BALANCE_INITIAL.toBigDecimal(),
         "JPY"
     )
 
@@ -161,8 +161,8 @@ class MainViewModel : ViewModel() {
     }
 
     companion object {
-        const val eurBalanceInitial = 1000
-        const val usdBalanceInitial = 0
-        const val jpyBalanceInitial = 0
+        const val EUR_BALANCE_INITIAL = 1000
+        const val USD_BALANCE_INITIAL = 0
+        const val JPY_BALANCE_INITIAL = 0
     }
 }
