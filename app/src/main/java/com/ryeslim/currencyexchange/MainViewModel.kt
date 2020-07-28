@@ -14,7 +14,6 @@ class MainViewModel : ViewModel() {
 
     private val viewModelJob = SupervisorJob()
     private val coroutineScope = CoroutineScope(Dispatchers.Main + viewModelJob)
-    private var response: retrofit2.Response<Currency>? = null
 
     private val _eur = MutableLiveData<Currency>()
     val eur: LiveData<Currency> = _eur
@@ -99,18 +98,19 @@ class MainViewModel : ViewModel() {
     private suspend fun fetchData() = withContext(Dispatchers.Default) {
         try {
             withContext(Dispatchers.IO) {
-                response = ServiceFactory.createRetrofitService(
+                val response = ServiceFactory.createRetrofitService(
                     CurrencyApi::class.java,
-                    "http://api.evp.lt/currency/commercial/exchange/"
+                    "http://api.evp.lt/currency/commercial/exchang/"
                 )
                     .getCurrencyAsync(url).await()
-            }
 
-            if (response!!.body() != null) {
-                calculateValues()
-                makeInfoMessage()
-            } else {
-                _error.postValue(Unit)
+                response.body()?.let { body ->
+                    calculateValues(body)
+                    makeInfoMessage(body)
+                }
+                if (response.body() == null) {
+                    _error.postValue(Unit)
+                }
             }
 
         } catch (e: Exception) {
@@ -123,14 +123,14 @@ class MainViewModel : ViewModel() {
             "$amountToConvert-${(currencies[indexFrom]).currencyCode}/${(currencies[indexTo]).currencyCode}/latest"
     }
 
-    private fun calculateValues() {
+    private fun calculateValues(currency: Currency) {
 
         currencies[indexFrom].balanceValue =
             currencies[indexFrom].balanceValue.minus(amountToConvert).minus(thisCommission)
         currencies[indexFrom].currencyCode = currencies[indexFrom].currencyCode
 
         currencies[indexTo].balanceValue =
-            currencies[indexTo].balanceValue.plus(response!!.body()!!.balanceValue)
+            currencies[indexTo].balanceValue.plus(currency.balanceValue)
         currencies[indexTo].currencyCode = currencies[indexTo].currencyCode
 
         commissions[indexFrom] = commissions[indexFrom].plus(thisCommission)
@@ -147,12 +147,12 @@ class MainViewModel : ViewModel() {
         thisCommission = commission.calculate(amountToConvert, numberOfOperations)
     }
 
-    private fun makeInfoMessage() {
+    private fun makeInfoMessage(currency: Currency) {
         _infoMessage.postValue(
             InfoMessage(
                 amountToConvert,
                 currencies[indexFrom].currencyCode,
-                response!!.body()!!.balanceValue,
+                currency.balanceValue,
                 currencies[indexTo].currencyCode,
                 thisCommission,
                 currencies[indexFrom].currencyCode
