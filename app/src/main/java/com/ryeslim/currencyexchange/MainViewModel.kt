@@ -14,7 +14,6 @@ class MainViewModel : ViewModel() {
 
     private val viewModelJob = SupervisorJob()
     private val coroutineScope = CoroutineScope(Dispatchers.Main + viewModelJob)
-    private var response: retrofit2.Response<Currency>? = null
 
     private val _eur = MutableLiveData<Currency>()
     val eur: LiveData<Currency> = _eur
@@ -41,17 +40,17 @@ class MainViewModel : ViewModel() {
     val jpyCommission: LiveData<BigDecimal> = _jpyCommission
 
     private val eurValue = Currency(
-        1000.toBigDecimal(),
+        EUR_BALANCE_INITIAL.toBigDecimal(),
         "EUR"
     )
 
     private val usdValue = Currency(
-        0.toBigDecimal(),
+        USD_BALANCE_INITIAL.toBigDecimal(),
         "USD"
     )
 
     private val jpyValue = Currency(
-        0.toBigDecimal(),
+        JPY_BALANCE_INITIAL.toBigDecimal(),
         "JPY"
     )
 
@@ -99,18 +98,19 @@ class MainViewModel : ViewModel() {
     private suspend fun fetchData() = withContext(Dispatchers.Default) {
         try {
             withContext(Dispatchers.IO) {
-                response = ServiceFactory.createRetrofitService(
+                val response = ServiceFactory.createRetrofitService(
                     CurrencyApi::class.java,
                     "http://api.evp.lt/currency/commercial/exchange/"
                 )
                     .getCurrencyAsync(url).await()
-            }
 
-            if (response!!.body() != null) {
-                calculateValues()
-                makeInfoMessage()
-            } else {
-                _error.postValue(Unit)
+                response.body()?.let { body ->
+                    calculateValues(body)
+                    makeInfoMessage(body)
+                }
+                if (response.body() == null) {
+                    _error.postValue(Unit)
+                }
             }
 
         } catch (e: Exception) {
@@ -123,27 +123,23 @@ class MainViewModel : ViewModel() {
             "$amountToConvert-${(currencies[indexFrom]).currencyCode}/${(currencies[indexTo]).currencyCode}/latest"
     }
 
-    private fun calculateValues() {
+    private fun calculateValues(currency: Currency) {
 
-        val tempCurrencyFrom = Currency(0.toBigDecimal(), "")
-        val tempCurrencyTo = Currency(0.toBigDecimal(), "")
-        val tempCommission: BigDecimal?
-
-        tempCurrencyFrom.balanceValue =
+        currencies[indexFrom].balanceValue =
             currencies[indexFrom].balanceValue.minus(amountToConvert).minus(thisCommission)
-        tempCurrencyFrom.currencyCode = currencies[indexFrom].currencyCode
+        currencies[indexFrom].currencyCode = currencies[indexFrom].currencyCode
 
-        tempCurrencyTo.balanceValue =
-            currencies[indexTo].balanceValue.plus(response!!.body()!!.balanceValue)
-        tempCurrencyTo.currencyCode = currencies[indexTo].currencyCode
+        currencies[indexTo].balanceValue =
+            currencies[indexTo].balanceValue.plus(currency.balanceValue)
+        currencies[indexTo].currencyCode = currencies[indexTo].currencyCode
 
-        tempCommission = commissions[indexFrom].plus(thisCommission)
+        commissions[indexFrom] = commissions[indexFrom].plus(thisCommission)
 
         // force postValue to notify Observers
         // postValue posts a task to a main thread to set the given values
-        currenciesLiveData[indexFrom].postValue(tempCurrencyFrom)
-        currenciesLiveData[indexTo].postValue(tempCurrencyTo)
-        commissionsLiveData[indexFrom].postValue(tempCommission)
+        currenciesLiveData[indexFrom].postValue(currencies[indexFrom])
+        currenciesLiveData[indexTo].postValue(currencies[indexTo])
+        commissionsLiveData[indexFrom].postValue(commissions[indexFrom])
     }
 
     fun calculateCommission() {
@@ -151,16 +147,22 @@ class MainViewModel : ViewModel() {
         thisCommission = commission.calculate(amountToConvert, numberOfOperations)
     }
 
-    private fun makeInfoMessage() {
+    private fun makeInfoMessage(currency: Currency) {
         _infoMessage.postValue(
             InfoMessage(
                 amountToConvert,
                 currencies[indexFrom].currencyCode,
-                response!!.body()!!.balanceValue,
+                currency.balanceValue,
                 currencies[indexTo].currencyCode,
                 thisCommission,
                 currencies[indexFrom].currencyCode
             )
         )
+    }
+
+    companion object {
+        const val EUR_BALANCE_INITIAL = 1000
+        const val USD_BALANCE_INITIAL = 0
+        const val JPY_BALANCE_INITIAL = 0
     }
 }

@@ -19,10 +19,15 @@ class SevenPercent : CalculateCommission {
         numberOfOperations: Int,
         extraCondition: Boolean
     ): BigDecimal {
-        return if (numberOfOperations > 5 && extraCondition) {
-            (amount * (0.7 / 100).toBigDecimal()).setScale(2, RoundingMode.HALF_EVEN)
+        return if (numberOfOperations > NUMBER_OF_FREE_OPERATIONS && extraCondition) {
+            (amount * (COMMISSIONS_PERCENT / 100).toBigDecimal()).setScale(2, RoundingMode.HALF_EVEN)
         } else {
             0.toBigDecimal()
         }
+    }
+
+    companion object {
+        val NUMBER_OF_FREE_OPERATIONS = 5
+        val COMMISSIONS_PERCENT = 0.7
     }
 }
