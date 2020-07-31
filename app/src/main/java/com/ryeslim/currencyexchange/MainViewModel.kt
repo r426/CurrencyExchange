@@ -10,7 +10,13 @@ import com.ryeslim.currencyexchange.dataclass.InfoMessage
 import kotlinx.coroutines.*
 import java.math.BigDecimal
 
-class MainViewModel : ViewModel() {
+class MainViewModel(
+    private val currencyService: CurrencyApi = ServiceFactory.createRetrofitService(
+        CurrencyApi::class.java,
+        "http://api.evp.lt/currency/commercial/exchange/"
+    ),
+    private var commission: CalculateCommission = SevenPercent()
+) : ViewModel() {
 
     private val viewModelJob = SupervisorJob()
     private val coroutineScope = CoroutineScope(Dispatchers.Main + viewModelJob)
@@ -81,7 +87,6 @@ class MainViewModel : ViewModel() {
     var indexTo = -1
     var numberOfOperations = 0
     var thisCommission: BigDecimal = 0.toBigDecimal()
-    private var commission = SevenPercent()
     private var url = ""
 
     override fun onCleared() {
@@ -98,12 +103,7 @@ class MainViewModel : ViewModel() {
     private suspend fun fetchData() = withContext(Dispatchers.Default) {
         try {
             withContext(Dispatchers.IO) {
-                val response = ServiceFactory.createRetrofitService(
-                    CurrencyApi::class.java,
-                    "http://api.evp.lt/currency/commercial/exchange/"
-                )
-                    .getCurrencyAsync(url).await()
-
+                val response = currencyService.getCurrencyAsync(url).await()
                 response.body()?.let { body ->
                     calculateValues(body)
                     makeInfoMessage(body)

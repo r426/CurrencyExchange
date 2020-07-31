@@ -1,20 +1,19 @@
 package com.ryeslim.currencyexchange
 
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.Toast
+import androidx.activity.viewModels
+import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProviders
 import com.ryeslim.currencyexchange.databinding.ActivityMainBinding
 import com.ryeslim.currencyexchange.dataclass.InfoMessage
 import java.math.RoundingMode
 
+
 class MainActivity : AppCompatActivity() {
 
-    private val viewModel: MainViewModel by lazy {
-        ViewModelProviders.of(this).get(MainViewModel::class.java)
-    }
+    private val viewModel: MainViewModel by viewModels { MainViewModelFactory() }
 
     private lateinit var binding: ActivityMainBinding
 
@@ -45,7 +44,7 @@ class MainActivity : AppCompatActivity() {
         viewModel.infoMessage.observe(this, Observer { newInfoMessage ->
             showInfoMessage(newInfoMessage)
         })
-      viewModel.error.observe(this, Observer { showErrorMessage() })
+        viewModel.error.observe(this, Observer { showErrorMessage() })
         binding.convert.setOnClickListener { manageConversion() }
     }
 
