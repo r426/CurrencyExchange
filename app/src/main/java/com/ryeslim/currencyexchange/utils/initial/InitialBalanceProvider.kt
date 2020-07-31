@@ -1,9 +1,8 @@
 package com.ryeslim.currencyexchange.utils.initial
 
-import android.content.Context
 import com.ryeslim.currencyexchange.dataclass.Currency
 
-class InitialBalanceProvider(private val context: Context) {
+class InitialBalanceProvider {
     fun getInitialEurBalance(): Currency {
         return Currency(
             EUR_BALANCE_INITIAL.toBigDecimal(),

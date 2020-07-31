@@ -29,7 +29,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun createInitialBalanceProvider(): InitialBalanceProvider {
-        return InitialBalanceProvider(this)
+        return InitialBalanceProvider()
     }
 
     private fun createErrorMessageProvider(): ErrorMessageProvider {
