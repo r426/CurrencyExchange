@@ -100,7 +100,7 @@ class MainViewModel : ViewModel() {
             withContext(Dispatchers.IO) {
                 val response = ServiceFactory.createRetrofitService(
                     CurrencyApi::class.java,
-                    "http://api.evp.lt/currency/commercial/exchang/"
+                    "http://api.evp.lt/currency/commercial/exchange/"
                 )
                     .getCurrencyAsync(url).await()
 
