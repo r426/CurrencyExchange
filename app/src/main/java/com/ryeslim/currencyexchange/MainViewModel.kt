@@ -16,7 +16,7 @@ class MainViewModel(
     private val currencyService: CurrencyApi,
     private val commissionCalculator: CommissionCalculator,
     private val errorMessageProvider: ErrorMessageProvider,
-    private val initialBalanceProvider: InitialBalanceProvider
+    initialBalanceProvider: InitialBalanceProvider
 ) : ViewModel() {
 
     private val viewModelJob = SupervisorJob()
