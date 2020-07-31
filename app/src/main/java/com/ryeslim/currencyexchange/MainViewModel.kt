@@ -85,7 +85,7 @@ class MainViewModel(
     private var amountToConvert = (-1).toBigDecimal()
     var indexFrom = -1
     var indexTo = -1
-    var numberOfOperations = 0
+    var numberOfOperations = 1
     var thisCommission: BigDecimal = 0.toBigDecimal()
     private var url = ""
 
