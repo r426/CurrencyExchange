@@ -1,9 +1,10 @@
-package com.ryeslim.currencyexchange
+package com.ryeslim.currencyexchange.commission
 
 import java.math.BigDecimal
 import java.math.RoundingMode
 
-class SevenPercent : CalculateCommission {
+class SevenPercentCommissionCalculator :
+    CommissionCalculator {
     override fun calculate(
         amount: BigDecimal,
         numberOfOperations: Int,
