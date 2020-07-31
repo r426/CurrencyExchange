@@ -7,8 +7,9 @@ import androidx.lifecycle.ViewModel
 import com.ryeslim.currencyexchange.commission.CommissionCalculator
 import com.ryeslim.currencyexchange.dataclass.Currency
 import com.ryeslim.currencyexchange.dataclass.InfoMessage
-import com.ryeslim.currencyexchange.utils.initial.InitialBalanceProvider
 import com.ryeslim.currencyexchange.utils.error.ErrorMessageProvider
+import com.ryeslim.currencyexchange.utils.initial.InitialBalanceProvider
+import com.ryeslim.currencyexchange.utils.initial.InitialCommissionProvider
 import kotlinx.coroutines.*
 import java.math.BigDecimal
 
@@ -16,7 +17,8 @@ class MainViewModel(
     private val currencyService: CurrencyApi,
     private val commissionCalculator: CommissionCalculator,
     private val errorMessageProvider: ErrorMessageProvider,
-    initialBalanceProvider: InitialBalanceProvider
+    initialBalanceProvider: InitialBalanceProvider,
+    initialCommissionProvider: InitialCommissionProvider
 ) : ViewModel() {
 
     private val viewModelJob = SupervisorJob()
@@ -49,21 +51,17 @@ class MainViewModel(
     private val _jpyCommission = MutableLiveData<BigDecimal>()
     val jpyCommission: LiveData<BigDecimal> = _jpyCommission
 
-    private val eurCommissionValue = 0.toBigDecimal()
-    private val usdCommissionValue = 0.toBigDecimal()
-    private val jpyCommissionValue = 0.toBigDecimal()
-
     init {
         _eur.postValue(initialBalanceProvider.getInitialEurBalance())
-        _eurCommission.postValue(eurCommissionValue)
+        _eurCommission.postValue(initialCommissionProvider.getInitialEurCommission())
 
 
         _usd.postValue(initialBalanceProvider.getInitialUsdBalance())
-        _usdCommission.postValue(usdCommissionValue)
+        _usdCommission.postValue(initialCommissionProvider.getInitialUsdCommission())
 
 
         _jpy.postValue(initialBalanceProvider.getInitialJpyBalance())
-        _jpyCommission.postValue(jpyCommissionValue)
+        _jpyCommission.postValue(initialCommissionProvider.getInitialJpyCommission())
     }
 
     private val currencies = arrayOf(
@@ -72,10 +70,11 @@ class MainViewModel(
         initialBalanceProvider.getInitialJpyBalance()
     )
     private val currenciesLiveData = arrayOf(_eur, _usd, _jpy)
+
     private val commissions = arrayOf(
-        eurCommissionValue,
-        usdCommissionValue,
-        jpyCommissionValue
+        initialCommissionProvider.getInitialEurCommission(),
+        initialCommissionProvider.getInitialUsdCommission(),
+        initialCommissionProvider.getInitialJpyCommission()
     )
     private val commissionsLiveData = arrayOf(
         _eurCommission,
@@ -95,7 +94,7 @@ class MainViewModel(
         viewModelJob.cancel()
     }
 
-    fun launchDataLoad() {
+    private fun launchDataLoad() {
         coroutineScope.launch {
             fetchData()
         }
@@ -119,7 +118,7 @@ class MainViewModel(
         }
     }
 
-    fun makeUrl() {
+    private fun makeUrl() {
         url =
             "$amountToConvert-${(currencies[indexFrom]).currencyCode}/${(currencies[indexTo]).currencyCode}/latest"
     }
