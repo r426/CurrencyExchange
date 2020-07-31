@@ -11,6 +11,7 @@ import com.ryeslim.currencyexchange.commission.SevenPercentCommissionCalculator
 import com.ryeslim.currencyexchange.databinding.ActivityMainBinding
 import com.ryeslim.currencyexchange.dataclass.InfoMessage
 import com.ryeslim.currencyexchange.retrofit.ServiceFactory
+import com.ryeslim.currencyexchange.utils.initial.InitialBalanceProvider
 import com.ryeslim.currencyexchange.utils.error.ErrorMessageProvider
 import java.math.BigDecimal
 import java.math.RoundingMode
@@ -22,8 +23,13 @@ class MainActivity : AppCompatActivity() {
         MainViewModelFactory(
             createCurrencyService(),
             createCommissionCalculator(),
-            createErrorMessageProvider()
+            createErrorMessageProvider(),
+            createInitialBalanceProvider()
         )
+    }
+
+    private fun createInitialBalanceProvider(): InitialBalanceProvider {
+        return InitialBalanceProvider(this)
     }
 
     private fun createErrorMessageProvider(): ErrorMessageProvider {
