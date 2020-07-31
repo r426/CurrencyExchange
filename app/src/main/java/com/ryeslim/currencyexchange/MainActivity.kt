@@ -11,6 +11,7 @@ import com.ryeslim.currencyexchange.commission.SevenPercentCommissionCalculator
 import com.ryeslim.currencyexchange.databinding.ActivityMainBinding
 import com.ryeslim.currencyexchange.dataclass.InfoMessage
 import com.ryeslim.currencyexchange.retrofit.ServiceFactory
+import com.ryeslim.currencyexchange.utils.error.ErrorMessageProvider
 import java.math.BigDecimal
 import java.math.RoundingMode
 
@@ -18,7 +19,15 @@ import java.math.RoundingMode
 class MainActivity : AppCompatActivity() {
 
     private val viewModel: MainViewModel by viewModels {
-        MainViewModelFactory(createCurrencyService(), createCommissionCalculator())
+        MainViewModelFactory(
+            createCurrencyService(),
+            createCommissionCalculator(),
+            createErrorMessageProvider()
+        )
+    }
+
+    private fun createErrorMessageProvider(): ErrorMessageProvider {
+        return ErrorMessageProvider(this)
     }
 
     private fun createCommissionCalculator(): CommissionCalculator {
@@ -61,12 +70,19 @@ class MainActivity : AppCompatActivity() {
         viewModel.infoMessage.observe(this, Observer { newInfoMessage ->
             showInfoMessage(newInfoMessage)
         })
-        viewModel.error.observe(this, Observer { showErrorMessage() })
+        viewModel.error.observe(this, Observer { showError() })
+        viewModel.errorMessage.observe(this, Observer { message -> showErrorMessage(message) })
+
         binding.convert.setOnClickListener { manageConversion() }
     }
 
-    private fun showErrorMessage() {
+    private fun showError() {
         binding.infoMessage.text = getString(R.string.error_message)
+    }
+
+    private fun showErrorMessage(errorMessage: String) {
+        Toast.makeText(applicationContext, errorMessage, Toast.LENGTH_LONG).show()
+        clearButtons()
     }
 
     private fun showInfoMessage(newInfoMessage: InfoMessage) {
@@ -80,6 +96,7 @@ class MainActivity : AppCompatActivity() {
                 newInfoMessage.commission,
                 newInfoMessage.commissionCurrencyCode
             )
+        clearButtons()
     }
 
     private fun getAmountToConvert(): BigDecimal {
@@ -110,35 +127,10 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun manageConversion() {
-        var errorMessage: String? = null
-
         val amountToConvert = getAmountToConvert()
         val currencyFrom = getCurrencyFrom()
         val currencyTo = getCurrencyTo()
         viewModel.calculateCommission(amountToConvert, currencyFrom, currencyTo)
-
-        //Error check
-        if (viewModel.amountToConvert < 0.toBigDecimal()) {
-            errorMessage = getString(R.string.enter_the_amount)
-        } else if (binding.radioGroupFrom.checkedRadioButtonId == -1
-            || binding.radioGroupTo.checkedRadioButtonId == -1
-            || viewModel.indexFrom == viewModel.indexTo
-        ) {
-            errorMessage = getString(R.string.radio_button_error)
-        } else if (viewModel.amountToConvert + viewModel.thisCommission > viewModel.currencies[viewModel.indexFrom].balanceValue) {
-            errorMessage = getString(R.string.insufficient_funds)
-        }
-
-        //Error message
-        if (errorMessage != null) {
-            Toast.makeText(applicationContext, errorMessage, Toast.LENGTH_LONG).show()
-            viewModel.numberOfOperations--
-        } else {
-            //if no errors
-            viewModel.makeUrl()
-            viewModel.launchDataLoad()
-            clearButtons()
-        }
     }
 
     private fun clearButtons() {

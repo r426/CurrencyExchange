@@ -7,12 +7,14 @@ import androidx.lifecycle.ViewModel
 import com.ryeslim.currencyexchange.commission.CommissionCalculator
 import com.ryeslim.currencyexchange.dataclass.Currency
 import com.ryeslim.currencyexchange.dataclass.InfoMessage
+import com.ryeslim.currencyexchange.utils.error.ErrorMessageProvider
 import kotlinx.coroutines.*
 import java.math.BigDecimal
 
 class MainViewModel(
     private val currencyService: CurrencyApi,
-    private var commissionCalculator: CommissionCalculator
+    private val commissionCalculator: CommissionCalculator,
+    private val errorMessageProvider: ErrorMessageProvider
 ) : ViewModel() {
 
     private val viewModelJob = SupervisorJob()
@@ -32,6 +34,9 @@ class MainViewModel(
 
     private val _error = MutableLiveData<Unit>()
     val error: LiveData<Unit> = _error
+
+    private val _errorMessage = MutableLiveData<String>()
+    val errorMessage: LiveData<String> = _errorMessage
 
     private val _eurCommission = MutableLiveData<BigDecimal>()
     val eurCommission: LiveData<BigDecimal> = _eurCommission
@@ -74,12 +79,12 @@ class MainViewModel(
         _jpyCommission.postValue(jpyCommissionValue)
     }
 
-    val currencies = arrayOf(eurValue, usdValue, jpyValue)
-    val currenciesLiveData = arrayOf(_eur, _usd, _jpy)
-    val commissions = arrayOf(eurCommissionValue, usdCommissionValue, jpyCommissionValue)
-    val commissionsLiveData = arrayOf(_eurCommission, _usdCommission, _jpyCommission)
+    private val currencies = arrayOf(eurValue, usdValue, jpyValue)
+    private val currenciesLiveData = arrayOf(_eur, _usd, _jpy)
+    private val commissions = arrayOf(eurCommissionValue, usdCommissionValue, jpyCommissionValue)
+    private val commissionsLiveData = arrayOf(_eurCommission, _usdCommission, _jpyCommission)
 
-    var amountToConvert = (-1).toBigDecimal()
+    private var amountToConvert = (-1).toBigDecimal()
     var indexFrom = -1
     var indexTo = -1
     var numberOfOperations = 0
@@ -143,9 +148,25 @@ class MainViewModel(
         this.amountToConvert = amountToConvert
         this.indexFrom = currencyFrom
         this.indexTo = currencyTo
-        numberOfOperations++
         //no extra conditions
         thisCommission = commissionCalculator.calculate(amountToConvert, numberOfOperations)
+
+        //Error check
+        if (amountToConvert < 0.toBigDecimal()) {
+            _errorMessage.postValue(errorMessageProvider.getMissingAmountError())
+            return
+        } else if (indexTo == -1 || indexFrom == -1 || indexFrom == indexTo) {
+            _errorMessage.postValue(errorMessageProvider.getTwoDifferentCurrenciesError())
+            return
+        } else if (amountToConvert + thisCommission > currencies[indexFrom].balanceValue) {
+            _errorMessage.postValue(errorMessageProvider.getInsufficientFundsError())
+            return
+        }
+
+        numberOfOperations++
+        //if no errors
+        makeUrl()
+        launchDataLoad()
     }
 
     private fun makeInfoMessage(currency: Currency) {
