@@ -4,18 +4,15 @@ package com.ryeslim.currencyexchange
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.ryeslim.currencyexchange.retrofit.ServiceFactory
+import com.ryeslim.currencyexchange.commission.CommissionCalculator
 import com.ryeslim.currencyexchange.dataclass.Currency
 import com.ryeslim.currencyexchange.dataclass.InfoMessage
 import kotlinx.coroutines.*
 import java.math.BigDecimal
 
 class MainViewModel(
-    private val currencyService: CurrencyApi = ServiceFactory.createRetrofitService(
-        CurrencyApi::class.java,
-        "http://api.evp.lt/currency/commercial/exchange/"
-    ),
-    private var commission: CalculateCommission = SevenPercent()
+    private val currencyService: CurrencyApi,
+    private var commissionCalculator: CommissionCalculator
 ) : ViewModel() {
 
     private val viewModelJob = SupervisorJob()
@@ -142,9 +139,13 @@ class MainViewModel(
         commissionsLiveData[indexFrom].postValue(commissions[indexFrom])
     }
 
-    fun calculateCommission() {
+    fun calculateCommission(amountToConvert: BigDecimal, currencyFrom: Int, currencyTo: Int) {
+        this.amountToConvert = amountToConvert
+        this.indexFrom = currencyFrom
+        this.indexTo = currencyTo
+        numberOfOperations++
         //no extra conditions
-        thisCommission = commission.calculate(amountToConvert, numberOfOperations)
+        thisCommission = commissionCalculator.calculate(amountToConvert, numberOfOperations)
     }
 
     private fun makeInfoMessage(currency: Currency) {

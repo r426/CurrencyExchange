@@ -1,9 +1,8 @@
-package com.ryeslim.currencyexchange
+package com.ryeslim.currencyexchange.commission
 
 import java.math.BigDecimal
-import java.math.RoundingMode
 
-interface CalculateCommission {
+interface CommissionCalculator {
     fun calculate(
         amount: BigDecimal,
         numberOfOperations: Int,
