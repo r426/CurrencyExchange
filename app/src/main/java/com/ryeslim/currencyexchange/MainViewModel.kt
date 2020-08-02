@@ -32,9 +32,6 @@ class MainViewModel(
     private val _infoMessage = MutableLiveData<InfoMessage>()
     val infoMessage: LiveData<InfoMessage> = _infoMessage
 
-    private val _error = MutableLiveData<Unit>()
-    val error: LiveData<Unit> = _error
-
     private val _errorMessage = MutableLiveData<String>()
     val errorMessage: LiveData<String> = _errorMessage
 
@@ -111,12 +108,12 @@ class MainViewModel(
                     makeInfoMessage(body)
                 }
                 if (response.body() == null) {
-                    _error.postValue(Unit)
+                    _errorMessage.postValue(errorMessageProvider.getGenericError())
                 }
             }
 
         } catch (e: Exception) {
-            _error.postValue(Unit)
+            _errorMessage.postValue(errorMessageProvider.getGenericError())
         }
     }
 
