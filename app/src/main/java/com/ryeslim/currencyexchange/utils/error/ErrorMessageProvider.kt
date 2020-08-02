@@ -15,4 +15,8 @@ class ErrorMessageProvider(private val context: Context){
     fun getInsufficientFundsError(): String {
         return context.getString(R.string.insufficient_funds)
     }
+
+    fun getGenericError(): String {
+        return context.getString(R.string.generic_error)
+    }
 }
