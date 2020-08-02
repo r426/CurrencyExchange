@@ -8,13 +8,17 @@ import com.ryeslim.currencyexchange.commission.CommissionCalculator
 import com.ryeslim.currencyexchange.dataclass.Currency
 import com.ryeslim.currencyexchange.dataclass.InfoMessage
 import com.ryeslim.currencyexchange.utils.error.ErrorMessageProvider
+import com.ryeslim.currencyexchange.utils.initial.InitialBalanceProvider
+import com.ryeslim.currencyexchange.utils.initial.InitialCommissionProvider
 import kotlinx.coroutines.*
 import java.math.BigDecimal
 
 class MainViewModel(
     private val currencyService: CurrencyApi,
     private val commissionCalculator: CommissionCalculator,
-    private val errorMessageProvider: ErrorMessageProvider
+    private val errorMessageProvider: ErrorMessageProvider,
+    initialBalanceProvider: InitialBalanceProvider,
+    initialCommissionProvider: InitialCommissionProvider
 ) : ViewModel() {
 
     private val viewModelJob = SupervisorJob()
@@ -44,47 +48,41 @@ class MainViewModel(
     private val _jpyCommission = MutableLiveData<BigDecimal>()
     val jpyCommission: LiveData<BigDecimal> = _jpyCommission
 
-    private val eurValue = Currency(
-        EUR_BALANCE_INITIAL.toBigDecimal(),
-        "EUR"
-    )
-
-    private val usdValue = Currency(
-        USD_BALANCE_INITIAL.toBigDecimal(),
-        "USD"
-    )
-
-    private val jpyValue = Currency(
-        JPY_BALANCE_INITIAL.toBigDecimal(),
-        "JPY"
-    )
-
-    private val eurCommissionValue = 0.toBigDecimal()
-    private val usdCommissionValue = 0.toBigDecimal()
-    private val jpyCommissionValue = 0.toBigDecimal()
-
     init {
-        _eur.postValue(eurValue)
-        _eurCommission.postValue(eurCommissionValue)
+        _eur.postValue(initialBalanceProvider.getInitialEurBalance())
+        _eurCommission.postValue(initialCommissionProvider.getInitialEurCommission())
 
 
-        _usd.postValue(usdValue)
-        _usdCommission.postValue(usdCommissionValue)
+        _usd.postValue(initialBalanceProvider.getInitialUsdBalance())
+        _usdCommission.postValue(initialCommissionProvider.getInitialUsdCommission())
 
 
-        _jpy.postValue(jpyValue)
-        _jpyCommission.postValue(jpyCommissionValue)
+        _jpy.postValue(initialBalanceProvider.getInitialJpyBalance())
+        _jpyCommission.postValue(initialCommissionProvider.getInitialJpyCommission())
     }
 
-    private val currencies = arrayOf(eurValue, usdValue, jpyValue)
+    private val currencies = arrayOf(
+        initialBalanceProvider.getInitialEurBalance(),
+        initialBalanceProvider.getInitialUsdBalance(),
+        initialBalanceProvider.getInitialJpyBalance()
+    )
     private val currenciesLiveData = arrayOf(_eur, _usd, _jpy)
-    private val commissions = arrayOf(eurCommissionValue, usdCommissionValue, jpyCommissionValue)
-    private val commissionsLiveData = arrayOf(_eurCommission, _usdCommission, _jpyCommission)
+
+    private val commissions = arrayOf(
+        initialCommissionProvider.getInitialEurCommission(),
+        initialCommissionProvider.getInitialUsdCommission(),
+        initialCommissionProvider.getInitialJpyCommission()
+    )
+    private val commissionsLiveData = arrayOf(
+        _eurCommission,
+        _usdCommission,
+        _jpyCommission
+    )
 
     private var amountToConvert = (-1).toBigDecimal()
     var indexFrom = -1
     var indexTo = -1
-    var numberOfOperations = 0
+    var numberOfOperations = 1
     var thisCommission: BigDecimal = 0.toBigDecimal()
     private var url = ""
 
@@ -93,7 +91,7 @@ class MainViewModel(
         viewModelJob.cancel()
     }
 
-    fun launchDataLoad() {
+    private fun launchDataLoad() {
         coroutineScope.launch {
             fetchData()
         }
@@ -117,7 +115,7 @@ class MainViewModel(
         }
     }
 
-    fun makeUrl() {
+    private fun makeUrl() {
         url =
             "$amountToConvert-${(currencies[indexFrom]).currencyCode}/${(currencies[indexTo]).currencyCode}/latest"
     }
@@ -177,11 +175,5 @@ class MainViewModel(
                 currencies[indexFrom].currencyCode
             )
         )
-    }
-
-    companion object {
-        const val EUR_BALANCE_INITIAL = 1000
-        const val USD_BALANCE_INITIAL = 0
-        const val JPY_BALANCE_INITIAL = 0
     }
 }
