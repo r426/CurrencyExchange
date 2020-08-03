@@ -4,13 +4,22 @@ package com.ryeslim.currencyexchange
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.ryeslim.currencyexchange.retrofit.ServiceFactory
+import com.ryeslim.currencyexchange.commission.CommissionCalculator
 import com.ryeslim.currencyexchange.dataclass.Currency
 import com.ryeslim.currencyexchange.dataclass.InfoMessage
+import com.ryeslim.currencyexchange.utils.error.ErrorMessageProvider
+import com.ryeslim.currencyexchange.utils.initial.InitialBalanceProvider
+import com.ryeslim.currencyexchange.utils.initial.InitialCommissionProvider
 import kotlinx.coroutines.*
 import java.math.BigDecimal
 
-class MainViewModel : ViewModel() {
+class MainViewModel(
+    private val currencyService: CurrencyApi,
+    private val commissionCalculator: CommissionCalculator,
+    private val errorMessageProvider: ErrorMessageProvider,
+    initialBalanceProvider: InitialBalanceProvider,
+    initialCommissionProvider: InitialCommissionProvider
+) : ViewModel() {
 
     private val viewModelJob = SupervisorJob()
     private val coroutineScope = CoroutineScope(Dispatchers.Main + viewModelJob)
@@ -27,8 +36,8 @@ class MainViewModel : ViewModel() {
     private val _infoMessage = MutableLiveData<InfoMessage>()
     val infoMessage: LiveData<InfoMessage> = _infoMessage
 
-    private val _error = MutableLiveData<Unit>()
-    val error: LiveData<Unit> = _error
+    private val _errorMessage = MutableLiveData<String>()
+    val errorMessage: LiveData<String> = _errorMessage
 
     private val _eurCommission = MutableLiveData<BigDecimal>()
     val eurCommission: LiveData<BigDecimal> = _eurCommission
@@ -39,49 +48,42 @@ class MainViewModel : ViewModel() {
     private val _jpyCommission = MutableLiveData<BigDecimal>()
     val jpyCommission: LiveData<BigDecimal> = _jpyCommission
 
-    private val eurValue = Currency(
-        EUR_BALANCE_INITIAL.toBigDecimal(),
-        "EUR"
-    )
-
-    private val usdValue = Currency(
-        USD_BALANCE_INITIAL.toBigDecimal(),
-        "USD"
-    )
-
-    private val jpyValue = Currency(
-        JPY_BALANCE_INITIAL.toBigDecimal(),
-        "JPY"
-    )
-
-    private val eurCommissionValue = 0.toBigDecimal()
-    private val usdCommissionValue = 0.toBigDecimal()
-    private val jpyCommissionValue = 0.toBigDecimal()
-
     init {
-        _eur.postValue(eurValue)
-        _eurCommission.postValue(eurCommissionValue)
+        _eur.postValue(initialBalanceProvider.getInitialEurBalance())
+        _eurCommission.postValue(initialCommissionProvider.getInitialEurCommission())
 
 
-        _usd.postValue(usdValue)
-        _usdCommission.postValue(usdCommissionValue)
+        _usd.postValue(initialBalanceProvider.getInitialUsdBalance())
+        _usdCommission.postValue(initialCommissionProvider.getInitialUsdCommission())
 
 
-        _jpy.postValue(jpyValue)
-        _jpyCommission.postValue(jpyCommissionValue)
+        _jpy.postValue(initialBalanceProvider.getInitialJpyBalance())
+        _jpyCommission.postValue(initialCommissionProvider.getInitialJpyCommission())
     }
 
-    val currencies = arrayOf(eurValue, usdValue, jpyValue)
-    val currenciesLiveData = arrayOf(_eur, _usd, _jpy)
-    val commissions = arrayOf(eurCommissionValue, usdCommissionValue, jpyCommissionValue)
-    val commissionsLiveData = arrayOf(_eurCommission, _usdCommission, _jpyCommission)
+    private val currencies = arrayOf(
+        initialBalanceProvider.getInitialEurBalance(),
+        initialBalanceProvider.getInitialUsdBalance(),
+        initialBalanceProvider.getInitialJpyBalance()
+    )
+    private val currenciesLiveData = arrayOf(_eur, _usd, _jpy)
 
-    var amountToConvert = (-1).toBigDecimal()
+    private val commissions = arrayOf(
+        initialCommissionProvider.getInitialEurCommission(),
+        initialCommissionProvider.getInitialUsdCommission(),
+        initialCommissionProvider.getInitialJpyCommission()
+    )
+    private val commissionsLiveData = arrayOf(
+        _eurCommission,
+        _usdCommission,
+        _jpyCommission
+    )
+
+    private var amountToConvert = (-1).toBigDecimal()
     var indexFrom = -1
     var indexTo = -1
-    var numberOfOperations = 0
+    var numberOfOperations = 1
     var thisCommission: BigDecimal = 0.toBigDecimal()
-    private var commission = SevenPercent()
     private var url = ""
 
     override fun onCleared() {
@@ -89,7 +91,7 @@ class MainViewModel : ViewModel() {
         viewModelJob.cancel()
     }
 
-    fun launchDataLoad() {
+    private fun launchDataLoad() {
         coroutineScope.launch {
             fetchData()
         }
@@ -98,27 +100,22 @@ class MainViewModel : ViewModel() {
     private suspend fun fetchData() = withContext(Dispatchers.Default) {
         try {
             withContext(Dispatchers.IO) {
-                val response = ServiceFactory.createRetrofitService(
-                    CurrencyApi::class.java,
-                    "http://api.evp.lt/currency/commercial/exchange/"
-                )
-                    .getCurrencyAsync(url).await()
-
+                val response = currencyService.getCurrencyAsync(url).await()
                 response.body()?.let { body ->
                     calculateValues(body)
                     makeInfoMessage(body)
                 }
                 if (response.body() == null) {
-                    _error.postValue(Unit)
+                    _errorMessage.postValue(errorMessageProvider.getGenericError())
                 }
             }
 
         } catch (e: Exception) {
-            _error.postValue(Unit)
+            _errorMessage.postValue(errorMessageProvider.getGenericError())
         }
     }
 
-    fun makeUrl() {
+    private fun makeUrl() {
         url =
             "$amountToConvert-${(currencies[indexFrom]).currencyCode}/${(currencies[indexTo]).currencyCode}/latest"
     }
@@ -142,9 +139,29 @@ class MainViewModel : ViewModel() {
         commissionsLiveData[indexFrom].postValue(commissions[indexFrom])
     }
 
-    fun calculateCommission() {
+    fun calculateCommission(amountToConvert: BigDecimal, currencyFrom: Int, currencyTo: Int) {
+        this.amountToConvert = amountToConvert
+        this.indexFrom = currencyFrom
+        this.indexTo = currencyTo
         //no extra conditions
-        thisCommission = commission.calculate(amountToConvert, numberOfOperations)
+        thisCommission = commissionCalculator.calculate(amountToConvert, numberOfOperations)
+
+        //Error check
+        if (amountToConvert < 0.toBigDecimal()) {
+            _errorMessage.postValue(errorMessageProvider.getMissingAmountError())
+            return
+        } else if (indexTo == -1 || indexFrom == -1 || indexFrom == indexTo) {
+            _errorMessage.postValue(errorMessageProvider.getTwoDifferentCurrenciesError())
+            return
+        } else if (amountToConvert + thisCommission > currencies[indexFrom].balanceValue) {
+            _errorMessage.postValue(errorMessageProvider.getInsufficientFundsError())
+            return
+        }
+
+        numberOfOperations++
+        //if no errors
+        makeUrl()
+        launchDataLoad()
     }
 
     private fun makeInfoMessage(currency: Currency) {
@@ -158,11 +175,5 @@ class MainViewModel : ViewModel() {
                 currencies[indexFrom].currencyCode
             )
         )
-    }
-
-    companion object {
-        const val EUR_BALANCE_INITIAL = 1000
-        const val USD_BALANCE_INITIAL = 0
-        const val JPY_BALANCE_INITIAL = 0
     }
 }

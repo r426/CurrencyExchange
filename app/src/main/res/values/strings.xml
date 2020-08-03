@@ -11,9 +11,9 @@
     <string name="radio_button_error">Please choose two different currencies</string>
     <string name="insufficient_funds">No sufficient funds to make this conversion</string>
     <string name="enter_the_amount">Please enter the amount of money to convert</string>
+    <string name="generic_error">Server error. Try later</string>
     <string name="balance">BALANCE</string>
     <string name="commissions">COMMISSIONS</string>
     <string name="amount">amount</string>
     <string name="info_message">You converted %.2f %s to %.2f %s. Commission paid: %.2f %s</string>
-    <string name="error_message">Error</string>
 </resources>
