@@ -100,7 +100,7 @@ class MainViewModel(
         this.selectedCurrencyFrom = selectedCurrencyFrom
         this.selectedCurrencyTo = selectedCurrencyTo
 
-        if (noInputError()) {
+        if (correctInput()) {
             when (selectedCurrencyFrom) {
                 SelectedCurrency.EUR -> {
                     currencyFrom = eurBalance
@@ -143,7 +143,7 @@ class MainViewModel(
         }
     }
 
-    private fun noInputError(): Boolean {
+    private fun correctInput(): Boolean {
         return if (
             selectedCurrencyFrom == null ||
             selectedCurrencyTo == null ||
