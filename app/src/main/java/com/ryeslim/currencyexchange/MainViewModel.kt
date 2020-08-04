@@ -104,6 +104,7 @@ class MainViewModel(
                 response.body()?.let { body ->
                     calculateValues(body)
                     makeInfoMessage(body)
+                    numberOfOperations++
                 }
                 if (response.body() == null) {
                     _errorMessage.postValue(errorMessageProvider.getGenericError())
@@ -117,7 +118,7 @@ class MainViewModel(
 
     private fun makeUrl() {
         url =
-            "$amountToConvert-${(currencyFrom)}/${(currencyTo)}/latest"
+            "$amountToConvert-${(selectedCurrencyFrom)}/${(selectedCurrencyTo)}/latest"
     }
 
     private fun calculateValues(currency: Currency) {
@@ -185,7 +186,6 @@ class MainViewModel(
             }
             calculateCommission()
             if (sufficientFunds()) {
-                numberOfOperations++
                 makeUrl()
                 launchDataLoad()
             }
