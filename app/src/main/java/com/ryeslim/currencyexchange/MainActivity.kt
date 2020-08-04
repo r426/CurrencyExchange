@@ -83,7 +83,9 @@ class MainActivity : AppCompatActivity() {
         viewModel.infoMessage.observe(this, Observer { newInfoMessage ->
             showInfoMessage(newInfoMessage)
         })
-        viewModel.errorMessage.observe(this, Observer { message -> showErrorMessage(message) })
+        viewModel.errorMessage.observe(this, Observer { newErrorMessage ->
+            showErrorMessage(newErrorMessage)
+        })
 
         binding.convert.setOnClickListener { manageConversion() }
     }

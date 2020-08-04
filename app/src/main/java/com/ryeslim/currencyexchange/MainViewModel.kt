@@ -110,7 +110,6 @@ class MainViewModel(
                     _errorMessage.postValue(errorMessageProvider.getGenericError())
                 }
             }
-
         } catch (e: Exception) {
             _errorMessage.postValue(errorMessageProvider.getGenericError())
         }
