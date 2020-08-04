@@ -80,63 +80,15 @@ class MainViewModel(
 
     private var currencyFrom: Currency = Currency(0.toBigDecimal(), "")
     private var currencyTo: Currency = Currency(0.toBigDecimal(), "")
-    var numberOfOperations = 1
     var commissionFrom = 0.toBigDecimal()
     var thisCommission = 0.toBigDecimal()
+    var numberOfOperations = 1
 
     private var url = ""
 
     override fun onCleared() {
         super.onCleared()
         viewModelJob.cancel()
-    }
-
-    private fun launchDataLoad() {
-        coroutineScope.launch {
-            fetchData()
-        }
-    }
-
-    private suspend fun fetchData() = withContext(Dispatchers.Default) {
-        try {
-            withContext(Dispatchers.IO) {
-                val response = currencyService.getCurrencyAsync(url).await()
-                response.body()?.let { body ->
-                    calculateValues(body)
-                    makeInfoMessage(body)
-                    numberOfOperations++
-                }
-                if (response.body() == null) {
-                    _errorMessage.postValue(errorMessageProvider.getGenericError())
-                }
-            }
-        } catch (e: Exception) {
-            _errorMessage.postValue(errorMessageProvider.getGenericError())
-        }
-    }
-
-    private fun makeUrl() {
-        url =
-            "$amountToConvert-${(selectedCurrencyFrom)}/${(selectedCurrencyTo)}/latest"
-    }
-
-    private fun calculateValues(currency: Currency) {
-
-        currencyFrom.balanceValue =
-            currencyFrom.balanceValue.minus(amountToConvert).minus(thisCommission)
-        currencyFrom.currencyCode = currencyFrom.currencyCode
-
-        currencyTo.balanceValue =
-            currencyTo.balanceValue.plus(currency.balanceValue)
-        currencyTo.currencyCode = currencyTo.currencyCode
-
-        commissionFrom = commissionFrom.plus(thisCommission)
-
-        // force postValue to notify Observers
-        // postValue posts a task to a main thread to set the given values
-        currencyLiveDataFrom.postValue(currencyFrom)
-        currencyLiveDataTo.postValue(currencyTo)
-        commissionLiveDataFrom.postValue(commissionFrom)
     }
 
     fun convert(
@@ -148,7 +100,7 @@ class MainViewModel(
         this.selectedCurrencyFrom = selectedCurrencyFrom
         this.selectedCurrencyTo = selectedCurrencyTo
 
-        if (noInputErrors()) {
+        if (noInputError()) {
             when (selectedCurrencyFrom) {
                 SelectedCurrency.EUR -> {
                     currencyFrom = eurBalance
@@ -191,7 +143,7 @@ class MainViewModel(
         }
     }
 
-    private fun noInputErrors(): Boolean {
+    private fun noInputError(): Boolean {
         return if (
             selectedCurrencyFrom == null ||
             selectedCurrencyTo == null ||
@@ -212,9 +164,57 @@ class MainViewModel(
         } else true
     }
 
+    private fun makeUrl() {
+        url =
+            "$amountToConvert-${(selectedCurrencyFrom)}/${(selectedCurrencyTo)}/latest"
+    }
+
     private fun calculateCommission() {
         //no extra conditions
         thisCommission = commissionCalculator.calculate(amountToConvert, numberOfOperations)
+    }
+
+    private fun calculateValues(currency: Currency) {
+
+        currencyFrom.balanceValue =
+            currencyFrom.balanceValue.minus(amountToConvert).minus(thisCommission)
+        currencyFrom.currencyCode = currencyFrom.currencyCode
+
+        currencyTo.balanceValue =
+            currencyTo.balanceValue.plus(currency.balanceValue)
+        currencyTo.currencyCode = currencyTo.currencyCode
+
+        commissionFrom = commissionFrom.plus(thisCommission)
+
+        // force postValue to notify Observers
+        // postValue posts a task to a main thread to set the given values
+        currencyLiveDataFrom.postValue(currencyFrom)
+        currencyLiveDataTo.postValue(currencyTo)
+        commissionLiveDataFrom.postValue(commissionFrom)
+    }
+
+    private fun launchDataLoad() {
+        coroutineScope.launch {
+            fetchData()
+        }
+    }
+
+    private suspend fun fetchData() = withContext(Dispatchers.Default) {
+        try {
+            withContext(Dispatchers.IO) {
+                val response = currencyService.getCurrencyAsync(url).await()
+                response.body()?.let { body ->
+                    calculateValues(body)
+                    makeInfoMessage(body)
+                    numberOfOperations++
+                }
+                if (response.body() == null) {
+                    _errorMessage.postValue(errorMessageProvider.getGenericError())
+                }
+            }
+        } catch (e: Exception) {
+            _errorMessage.postValue(errorMessageProvider.getGenericError())
+        }
     }
 
     private fun makeInfoMessage(currency: Currency) {
