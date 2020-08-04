@@ -167,7 +167,7 @@ class MainViewModel(
                     currencyFrom = jpyBalance
                     currencyLiveDataFrom = _jpy
                     commissionFrom = jpyComm
-                    commissionLiveDataFrom = _eurCommission
+                    commissionLiveDataFrom = _jpyCommission
                 }
             }
             when (selectedCurrencyTo) {
