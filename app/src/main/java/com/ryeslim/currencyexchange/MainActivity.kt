@@ -10,6 +10,7 @@ import com.ryeslim.currencyexchange.commission.CommissionCalculator
 import com.ryeslim.currencyexchange.commission.SevenPercentCommissionCalculator
 import com.ryeslim.currencyexchange.databinding.ActivityMainBinding
 import com.ryeslim.currencyexchange.dataclass.InfoMessage
+import com.ryeslim.currencyexchange.dataclass.SelectedCurrency
 import com.ryeslim.currencyexchange.retrofit.ServiceFactory
 import com.ryeslim.currencyexchange.utils.error.ErrorMessageProvider
 import com.ryeslim.currencyexchange.utils.initial.InitialBalanceProvider
@@ -115,29 +116,29 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun getCurrencyFrom(): Int {
+    private fun getCurrencyFrom(): SelectedCurrency? {
         return when (binding.radioGroupFrom.checkedRadioButtonId) {
-            binding.fromEur.id -> 0
-            binding.fromUsd.id -> 1
-            binding.fromJpy.id -> 2
-            else -> -1
+            binding.fromEur.id -> SelectedCurrency.EUR
+            binding.fromUsd.id -> SelectedCurrency.USD
+            binding.fromJpy.id -> SelectedCurrency.JPY
+            else -> null
         }
     }
 
-    private fun getCurrencyTo(): Int {
+    private fun getCurrencyTo(): SelectedCurrency? {
         return when (binding.radioGroupTo.checkedRadioButtonId) {
-            binding.toEur.id -> 0
-            binding.toUsd.id -> 1
-            binding.toJpy.id -> 2
-            else -> -1
+            binding.toEur.id -> SelectedCurrency.EUR
+            binding.toUsd.id -> SelectedCurrency.USD
+            binding.toJpy.id -> SelectedCurrency.JPY
+            else -> null
         }
     }
 
     private fun manageConversion() {
         val amountToConvert = getAmountToConvert()
-        val currencyFrom = getCurrencyFrom()
-        val currencyTo = getCurrencyTo()
-        viewModel.calculateCommission(amountToConvert, currencyFrom, currencyTo)
+        val selectedCurrencyFrom = getCurrencyFrom()
+        val selectedCurrencyTo = getCurrencyTo()
+        viewModel.convert(amountToConvert, selectedCurrencyFrom, selectedCurrencyTo)
     }
 
     private fun clearButtons() {

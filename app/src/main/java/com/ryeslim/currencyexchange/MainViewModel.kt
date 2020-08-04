@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModel
 import com.ryeslim.currencyexchange.commission.CommissionCalculator
 import com.ryeslim.currencyexchange.dataclass.Currency
 import com.ryeslim.currencyexchange.dataclass.InfoMessage
+import com.ryeslim.currencyexchange.dataclass.SelectedCurrency
 import com.ryeslim.currencyexchange.utils.error.ErrorMessageProvider
 import com.ryeslim.currencyexchange.utils.initial.InitialBalanceProvider
 import com.ryeslim.currencyexchange.utils.initial.InitialCommissionProvider
@@ -48,42 +49,41 @@ class MainViewModel(
     private val _jpyCommission = MutableLiveData<BigDecimal>()
     val jpyCommission: LiveData<BigDecimal> = _jpyCommission
 
+
+    private var eurBalance = initialBalanceProvider.getInitialEurBalance()
+    private var usdBalance = initialBalanceProvider.getInitialUsdBalance()
+    private var jpyBalance = initialBalanceProvider.getInitialJpyBalance()
+
+
+    private var eurComm = initialCommissionProvider.getInitialEurCommission()
+    private var usdComm = initialCommissionProvider.getInitialUsdCommission()
+    private var jpyComm = initialCommissionProvider.getInitialJpyCommission()
+
     init {
-        _eur.postValue(initialBalanceProvider.getInitialEurBalance())
-        _eurCommission.postValue(initialCommissionProvider.getInitialEurCommission())
+        _eur.postValue(eurBalance)
+        _eurCommission.postValue(eurComm)
 
+        _usd.postValue(usdBalance)
+        _usdCommission.postValue(usdComm)
 
-        _usd.postValue(initialBalanceProvider.getInitialUsdBalance())
-        _usdCommission.postValue(initialCommissionProvider.getInitialUsdCommission())
-
-
-        _jpy.postValue(initialBalanceProvider.getInitialJpyBalance())
-        _jpyCommission.postValue(initialCommissionProvider.getInitialJpyCommission())
+        _jpy.postValue(jpyBalance)
+        _jpyCommission.postValue(jpyComm)
     }
 
-    private val currencies = arrayOf(
-        initialBalanceProvider.getInitialEurBalance(),
-        initialBalanceProvider.getInitialUsdBalance(),
-        initialBalanceProvider.getInitialJpyBalance()
-    )
-    private val currenciesLiveData = arrayOf(_eur, _usd, _jpy)
-
-    private val commissions = arrayOf(
-        initialCommissionProvider.getInitialEurCommission(),
-        initialCommissionProvider.getInitialUsdCommission(),
-        initialCommissionProvider.getInitialJpyCommission()
-    )
-    private val commissionsLiveData = arrayOf(
-        _eurCommission,
-        _usdCommission,
-        _jpyCommission
-    )
+    private lateinit var currencyLiveDataFrom: MutableLiveData<Currency>
+    private lateinit var currencyLiveDataTo: MutableLiveData<Currency>
+    private lateinit var commissionLiveDataFrom: MutableLiveData<BigDecimal>
 
     private var amountToConvert = (-1).toBigDecimal()
-    var indexFrom = -1
-    var indexTo = -1
+    private var selectedCurrencyFrom: SelectedCurrency? = null
+    private var selectedCurrencyTo: SelectedCurrency? = null
+
+    private var currencyFrom: Currency = Currency(0.toBigDecimal(), "")
+    private var currencyTo: Currency = Currency(0.toBigDecimal(), "")
     var numberOfOperations = 1
-    var thisCommission: BigDecimal = 0.toBigDecimal()
+    var commissionFrom = 0.toBigDecimal()
+    var thisCommission = 0.toBigDecimal()
+
     private var url = ""
 
     override fun onCleared() {
@@ -117,62 +117,116 @@ class MainViewModel(
 
     private fun makeUrl() {
         url =
-            "$amountToConvert-${(currencies[indexFrom]).currencyCode}/${(currencies[indexTo]).currencyCode}/latest"
+            "$amountToConvert-${(currencyFrom)}/${(currencyTo)}/latest"
     }
 
     private fun calculateValues(currency: Currency) {
 
-        currencies[indexFrom].balanceValue =
-            currencies[indexFrom].balanceValue.minus(amountToConvert).minus(thisCommission)
-        currencies[indexFrom].currencyCode = currencies[indexFrom].currencyCode
+        currencyFrom.balanceValue =
+            currencyFrom.balanceValue.minus(amountToConvert).minus(thisCommission)
+        currencyFrom.currencyCode = currencyFrom.currencyCode
 
-        currencies[indexTo].balanceValue =
-            currencies[indexTo].balanceValue.plus(currency.balanceValue)
-        currencies[indexTo].currencyCode = currencies[indexTo].currencyCode
+        currencyTo.balanceValue =
+            currencyTo.balanceValue.plus(currency.balanceValue)
+        currencyTo.currencyCode = currencyTo.currencyCode
 
-        commissions[indexFrom] = commissions[indexFrom].plus(thisCommission)
+        commissionFrom = commissionFrom.plus(thisCommission)
 
         // force postValue to notify Observers
         // postValue posts a task to a main thread to set the given values
-        currenciesLiveData[indexFrom].postValue(currencies[indexFrom])
-        currenciesLiveData[indexTo].postValue(currencies[indexTo])
-        commissionsLiveData[indexFrom].postValue(commissions[indexFrom])
+        currencyLiveDataFrom.postValue(currencyFrom)
+        currencyLiveDataTo.postValue(currencyTo)
+        commissionLiveDataFrom.postValue(commissionFrom)
     }
 
-    fun calculateCommission(amountToConvert: BigDecimal, currencyFrom: Int, currencyTo: Int) {
+    fun convert(
+        amountToConvert: BigDecimal,
+        selectedCurrencyFrom: SelectedCurrency?,
+        selectedCurrencyTo: SelectedCurrency?
+    ) {
         this.amountToConvert = amountToConvert
-        this.indexFrom = currencyFrom
-        this.indexTo = currencyTo
+        this.selectedCurrencyFrom = selectedCurrencyFrom
+        this.selectedCurrencyTo = selectedCurrencyTo
+
+        if (noInputErrors()) {
+            when (selectedCurrencyFrom) {
+                SelectedCurrency.EUR -> {
+                    currencyFrom = eurBalance
+                    currencyLiveDataFrom = _eur
+                    commissionFrom = eurComm
+                    commissionLiveDataFrom = _eurCommission
+                }
+                SelectedCurrency.USD -> {
+                    currencyFrom = usdBalance
+                    currencyLiveDataFrom = _usd
+                    commissionFrom = usdComm
+                    commissionLiveDataFrom = _usdCommission
+                }
+                SelectedCurrency.JPY -> {
+                    currencyFrom = jpyBalance
+                    currencyLiveDataFrom = _jpy
+                    commissionFrom = jpyComm
+                    commissionLiveDataFrom = _eurCommission
+                }
+            }
+            when (selectedCurrencyTo) {
+                SelectedCurrency.EUR -> {
+                    currencyTo = eurBalance
+                    currencyLiveDataTo = _eur
+                }
+                SelectedCurrency.USD -> {
+                    currencyTo = usdBalance
+                    currencyLiveDataTo = _usd
+                }
+                SelectedCurrency.JPY -> {
+                    currencyTo = jpyBalance
+                    currencyLiveDataTo = _jpy
+                }
+            }
+            calculateCommission()
+            if (sufficientFunds()) {
+                numberOfOperations++
+                makeUrl()
+                launchDataLoad()
+            }
+        }
+    }
+
+    private fun noInputErrors(): Boolean {
+        return if (
+            selectedCurrencyFrom == null ||
+            selectedCurrencyTo == null ||
+            selectedCurrencyFrom == selectedCurrencyTo
+        ) {
+            _errorMessage.postValue(errorMessageProvider.getTwoDifferentCurrenciesError())
+            false
+        } else if (amountToConvert < 0.toBigDecimal()) {
+            _errorMessage.postValue(errorMessageProvider.getMissingAmountError())
+            false
+        } else true
+    }
+
+    private fun sufficientFunds(): Boolean {
+        return if (amountToConvert + thisCommission > currencyFrom.balanceValue) {
+            _errorMessage.postValue(errorMessageProvider.getInsufficientFundsError())
+            false
+        } else true
+    }
+
+    private fun calculateCommission() {
         //no extra conditions
         thisCommission = commissionCalculator.calculate(amountToConvert, numberOfOperations)
-
-        //Error check
-        if (amountToConvert < 0.toBigDecimal()) {
-            _errorMessage.postValue(errorMessageProvider.getMissingAmountError())
-            return
-        } else if (indexTo == -1 || indexFrom == -1 || indexFrom == indexTo) {
-            _errorMessage.postValue(errorMessageProvider.getTwoDifferentCurrenciesError())
-            return
-        } else if (amountToConvert + thisCommission > currencies[indexFrom].balanceValue) {
-            _errorMessage.postValue(errorMessageProvider.getInsufficientFundsError())
-            return
-        }
-
-        numberOfOperations++
-        //if no errors
-        makeUrl()
-        launchDataLoad()
     }
 
     private fun makeInfoMessage(currency: Currency) {
         _infoMessage.postValue(
             InfoMessage(
                 amountToConvert,
-                currencies[indexFrom].currencyCode,
+                currencyFrom.currencyCode,
                 currency.balanceValue,
-                currencies[indexTo].currencyCode,
+                currencyTo.currencyCode,
                 thisCommission,
-                currencies[indexFrom].currencyCode
+                currencyFrom.currencyCode
             )
         )
     }
